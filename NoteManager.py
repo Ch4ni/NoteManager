@@ -1,37 +1,37 @@
 __author__ = 'acripps'
 
-class SQLManager:
+class NoteManager:
     def __init__(self):
-        self.queries = {}
+        self.notes = {}
 
     def search(self, searchParam=""):
-        if self.queries.has_key(searchParam):
-            return {searchParam : self.queries[searchParam]}
+        if self.notes.has_key(searchParam):
+            return {searchParam : self.notes[searchParam]}
         else:
-            return {s: self.queries[s] for s in self.getListOfKeysContainingSearchString(searchParam)}
+            return {s: self.notes[s] for s in self.getListOfKeysContainingSearchString(searchParam)}
 
     def getListOfKeysContainingSearchString(self, searchStr):
-        return [s for s in self.queries.keys() if searchStr in s]
+        return [s for s in self.notes.keys() if searchStr in s]
 
-    def addQuery(self, title="", sql=""):
-        if sql == "":
+    def addNote(self, title="", body=""):
+        if body == "":
             if title == "":
-                raise EmptyQueryException
-            raise EmptySqlException
+                raise EmptyNoteException
+            raise EmptyBodyException
         if title == "":
             raise EmptyTitleException
-        if self.queries.has_key(title):
+        if self.notes.has_key(title):
             raise DuplicateEntryException
-        self.queries[title] = sql
+        self.notes[title] = body
 
 
-class EmptyQueryException(Exception):
+class EmptyNoteException(Exception):
     pass
 
 class EmptyTitleException(Exception):
     pass
 
-class EmptySqlException(Exception):
+class EmptyBodyException(Exception):
     pass
 
 class DuplicateEntryException(Exception):
