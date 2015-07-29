@@ -14,15 +14,21 @@ class NoteManager:
         return [s for s in self.notes.keys() if searchStr in s]
 
     def addNote(self, title="", body=""):
-        if body == "":
-            if title == "":
-                raise EmptyNoteException
-            raise EmptyBodyException
+        self.validateNote(title, body)
+        self.notes[title] = body
+
+    def validateNote(self, title="", body=""):
+        if self.isEmptyNote(title, body):
+            raise EmptyNoteException
         if title == "":
             raise EmptyTitleException
+        if body == "":
+            raise EmptyBodyException
         if self.notes.has_key(title):
             raise DuplicateEntryException
-        self.notes[title] = body
+
+    def isEmptyNote(self, title="", body=""):
+        return body == "" and title == ""
 
 
 class EmptyNoteException(Exception):
