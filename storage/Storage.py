@@ -4,3 +4,6 @@ class Storage:
     
     def search(self, searchParam=""):
         pass
+
+    def hasNote(self, title=""):
+        pass
