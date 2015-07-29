@@ -1,21 +1,17 @@
 __author__ = 'acripps'
 
+from storage.StorageFactory import StorageFactory
+
 class NoteManager:
     def __init__(self):
-        self.notes = {}
+        self.storage = StorageFactory.createStorage("DictStorage")
 
     def search(self, searchParam=""):
-        if self.notes.has_key(searchParam):
-            return {searchParam : self.notes[searchParam]}
-        else:
-            return {s: self.notes[s] for s in self.getListOfKeysContainingSearchString(searchParam)}
-
-    def getListOfKeysContainingSearchString(self, searchStr):
-        return [s for s in self.notes.keys() if searchStr in s]
+        return self.storage.search(searchParam)
 
     def addNote(self, title="", body=""):
         self.validateNote(title, body)
-        self.notes[title] = body
+        self.storage.addNote(title, body)
 
     def validateNote(self, title="", body=""):
         if self.isEmptyNote(title, body):
@@ -24,7 +20,7 @@ class NoteManager:
             raise EmptyTitleException
         if body == "":
             raise EmptyBodyException
-        if self.notes.has_key(title):
+        if self.storage.hasNote(title):
             raise DuplicateEntryException
 
     def isEmptyNote(self, title="", body=""):
