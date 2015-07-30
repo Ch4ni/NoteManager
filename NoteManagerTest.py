@@ -1,12 +1,15 @@
 __author__ = 'acripps'
 
 import unittest
+import sys
+
 
 from NoteManager import *
+from test import ParameterizedTestCase
 
-class MyTestCase(unittest.TestCase):
+class NoteManagerTest(ParameterizedTestCase):
     def setUp(self):
-        self.noteMan = NoteManager()
+        self.noteMan = NoteManager(self.param)
         self.exceptionIsThrownByMethod = False
         self.receivedException = None
 

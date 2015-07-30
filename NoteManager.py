@@ -3,8 +3,8 @@ __author__ = 'acripps'
 from storage.StorageFactory import StorageFactory
 
 class NoteManager:
-    def __init__(self):
-        self.storage = StorageFactory.createStorage("DictStorage")
+    def __init__(self, storageType=""):
+        self.storage = StorageFactory.createStorage(storageType)
 
     def search(self, searchParam=""):
         return self.storage.search(searchParam)

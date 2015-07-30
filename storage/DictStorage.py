@@ -21,5 +21,5 @@ class DictStorage(Storage):
         return self.notes.has_key(title)
 
     class Factory:
-        def create(self):
+        def create(self, *args, **kwargs):
             return DictStorage()
