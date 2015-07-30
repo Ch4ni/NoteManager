@@ -1,13 +1,17 @@
 from Storage import Storage
 
+
 class FilesystemStorage(Storage):
-    def search(self, searchParam=""):
+    def __init__(self):
         pass
 
-    def addNote(self, title="", body=""):
+    def search(self, search_param=""):
         pass
 
-    def hasNote(self, title=""):
+    def add_note(self, title="", body=""):
+        pass
+
+    def has_note(self, title=""):
         pass
 
     class Factory:

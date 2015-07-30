@@ -1,9 +1,9 @@
 class Storage:
-    def addNote(self, title="", body=""):
+    def add_note(self, title="", body=""):
         pass
     
-    def search(self, searchParam=""):
+    def search(self, search_param=""):
         pass
 
-    def hasNote(self, title=""):
+    def has_note(self, title=""):
         pass

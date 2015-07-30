@@ -1,1 +1,1 @@
-from ParameterizedTestCase import ParameterizedTestCase
+from ParametrizedTestCase import ParametrizedTestCase

@@ -1,4 +1,5 @@
 from DictStorage import DictStorage
+from FilesystemStorage import FilesystemStorage
 
 class StorageFactory:
     factories = {}
