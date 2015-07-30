@@ -2,6 +2,12 @@
 __pycache__/
 *.py[cod]
 
+# Vim files
+*.sw[op]
+
+# PyCharm/Intellij directory
+.idea
+
 # C extensions
 *.so
 
