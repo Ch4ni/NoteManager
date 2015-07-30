@@ -1,6 +1,6 @@
 __author__ = 'acripps'
 
-from storage.StorageFactory import StorageFactory
+from storage import StorageFactory
 
 class NoteManager:
     def __init__(self, storageType=""):
