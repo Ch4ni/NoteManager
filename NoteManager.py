@@ -4,8 +4,8 @@ from storage import StorageFactory
 
 
 class NoteManager:
-    def __init__(self, storage_type=""):
-        self.storage = StorageFactory.createStorage(storage_type)
+    def __init__(self, storage_type="", *args, **kwargs):
+        self.storage = StorageFactory.create_storage(storage_type, *args, **kwargs)
 
     def search(self, search_param=""):
         return self.storage.search(search_param)
@@ -27,6 +27,9 @@ class NoteManager:
     @staticmethod
     def is_empty_note(title="", body=""):
         return body == "" and title == ""
+
+    def _purge_all_notes(self):
+        self.storage._purge_all_notes()
 
 
 class EmptyNoteException(Exception):

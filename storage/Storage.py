@@ -7,3 +7,6 @@ class Storage:
 
     def has_note(self, title=""):
         pass
+
+    def _purge_all_notes(self):
+        pass

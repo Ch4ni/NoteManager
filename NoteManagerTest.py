@@ -8,9 +8,12 @@ from test import ParametrizedTestCase
 
 class NoteManagerTest(ParametrizedTestCase):
     def setUp(self):
-        self.noteMan = NoteManager(self.param)
+        self.noteMan = NoteManager(self.param[0], *self.param[1], **self.param[2])
         self.exceptionIsThrownByMethod = False
         self.receivedException = None
+
+    def tearDown(self):
+        self.noteMan._purge_all_notes()
 
     def testNoteManagerConstructorReturnsNonNone(self):
         self.assertIsNotNone(
@@ -68,7 +71,7 @@ class NoteManagerTest(ParametrizedTestCase):
             self.receivedException = e
         self.assertFalse(
             self.exceptionIsThrownByMethod,
-            "Param: {}. Received unexpected Exception: {}"
+            "Param: {}. Received unexpected Exception: ({!r})"
             .format(self.param, self.receivedException)
         )
 
@@ -82,7 +85,7 @@ class NoteManagerTest(ParametrizedTestCase):
             self.receivedException = e
         self.assertFalse(
             self.exceptionIsThrownByMethod,
-            "Param: {}. Received unexpected Exception {} during addNote"
+            "Param: {}. Received unexpected Exception ({!r}) during addNote"
             .format(self.param, self.receivedException)
         )
         results = self.noteMan.search(note_title)
@@ -108,7 +111,7 @@ class NoteManagerTest(ParametrizedTestCase):
             self.receivedException = e
         self.assertFalse(
             self.exceptionIsThrownByMethod,
-            "Param: {}. Received unexpected Exception {} during addNote"
+            "Param: {}. Received unexpected Exception ({!r}) during addNote"
             .format(self.param, self.receivedException)
         )
         results = self.noteMan.search("Select")
@@ -137,7 +140,7 @@ class NoteManagerTest(ParametrizedTestCase):
             self.receivedException = e
         self.assertFalse(
             self.exceptionIsThrownByMethod,
-            "Param: {}. Received unexpected Exception {} during addNote"
+            "Param: {}. Received unexpected Exception ({!r}) during addNote"
             .format(self.param, self.receivedException)
         )
         results = self.noteMan.search("Select")
@@ -171,7 +174,7 @@ class NoteManagerTest(ParametrizedTestCase):
             self.receivedException = e
         self.assertFalse(
             self.exceptionIsThrownByMethod,
-            "Param: {}. Received unexpected Exception {} during addNote"
+            "Param: {}. Received unexpected Exception ({!r}) during addNote"
             .format(self.param, self.receivedException)
         )
         results = self.noteMan.search("Select")
