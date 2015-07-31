@@ -13,25 +13,29 @@ class FilesystemStorage(Storage):
         self.__check_basepath_exists()
         if search_param == "":
             return {}
-        filenames = [
-                urlsafe_b64decode(t)
-                for t in os.listdir(self.base_path)
-                if search_param in urlsafe_b64decode(t)
-        ]
-        return {f : self.__get_note_contents(f) for f in filenames}
+        filename_title_dict = self.__get_matching_filename_title_dict(search_param)
+        return {
+                filename_title_dict[f] : self.__get_note_contents(f)
+                for f in filename_title_dict
+        }
+
+    def __get_matching_filename_title_dict(self, search_param=""):
+        matching_filenames = {}
+        for t in os.listdir(self.base_path):
+            decoded_filename = urlsafe_b64decode(t)
+            if search_param in decoded_filename:
+                matching_filenames[t] = decoded_filename
+        return matching_filenames
 
     def __get_note_contents(self, title):
         self.__check_basepath_exists()
-        f = open(self.__get_full_note_path(title), "r")
-        note_body = ''.join(f.readlines())
-        f.close()
-        return note_body
+        with open(os.path.join(self.base_path, title), "r") as f:
+            return ''.join(f.readlines())
 
     def add_note(self, title="", body=""):
         self.__check_basepath_exists()
-        output = open(self.__get_full_note_path(title), "w")
-        output.write(body)
-        output.close()
+        with open(self.__get_full_note_path(title), "w") as output:
+            output.write(body)
 
     def __get_full_note_path(self, title=""):
         """ We use bencoding to ensure a filesystem safe hash to use as a
