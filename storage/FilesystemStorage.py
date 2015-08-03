@@ -1,8 +1,11 @@
 import os
 import shutil
+import cPickle
 
 from base64 import urlsafe_b64encode,urlsafe_b64decode
 from Storage import Storage
+
+pickler = cPickle
 
 
 class FilesystemStorage(Storage):
@@ -30,12 +33,12 @@ class FilesystemStorage(Storage):
     def __get_note_contents(self, title):
         self.__check_basepath_exists()
         with open(os.path.join(self.base_path, title), "r") as f:
-            return ''.join(f.readlines())
+            return pickler.load(f)
 
     def add_note(self, title="", body=""):
         self.__check_basepath_exists()
         with open(self.__get_full_note_path(title), "w") as output:
-            output.write(body)
+            pickler.dump(body, output, pickler.HIGHEST_PROTOCOL)
 
     def __get_full_note_path(self, title=""):
         """ We use bencoding to ensure a filesystem safe hash to use as a
