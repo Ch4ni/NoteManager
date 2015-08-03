@@ -1,6 +1,7 @@
 __author__ = 'acripps'
 
 from storage import StorageFactory
+from Note import Note
 
 
 class NoteManager:
@@ -11,22 +12,23 @@ class NoteManager:
         return self.storage.search(search_param)
 
     def add_note(self, title="", body=""):
-        self.validate_note(title, body)
-        self.storage.add_note(title, body)
+        note = Note(id, title, body)
+        self.validate_note(note)
+        self.storage.add_note(note)
 
-    def validate_note(self, title="", body=""):
-        if self.is_empty_note(title, body):
+    def validate_note(self, note=Note(0,"","")):
+        if self.is_empty_note(note):
             raise EmptyNoteException
-        if title == "":
+        if note.title == "":
             raise EmptyTitleException
-        if body == "":
+        if note.body == "":
             raise EmptyBodyException
-        if self.storage.has_note(title):
+        if self.storage.has_note(note.title):
             raise DuplicateEntryException
 
     @staticmethod
-    def is_empty_note(title="", body=""):
-        return body == "" and title == ""
+    def is_empty_note(note):
+        return note.body == "" and note.title == ""
 
     def _purge_all_notes(self):
         self.storage._purge_all_notes()

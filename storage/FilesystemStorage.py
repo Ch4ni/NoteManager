@@ -15,10 +15,10 @@ class FilesystemStorage(Storage):
     def search(self, search_param=""):
         self.__check_basepath_exists()
         if search_param == "":
-            return {}
+            return []
         filename_title_dict = self.__get_matching_filename_title_dict(search_param)
         return {
-                filename_title_dict[f] : self.__get_note_contents(f)
+                self.__get_note_contents(f)
                 for f in filename_title_dict
         }
 
@@ -35,10 +35,10 @@ class FilesystemStorage(Storage):
         with open(os.path.join(self.base_path, title), "r") as f:
             return pickler.load(f)
 
-    def add_note(self, title="", body=""):
+    def add_note(self, note):
         self.__check_basepath_exists()
-        with open(self.__get_full_note_path(title), "w") as output:
-            pickler.dump(body, output, pickler.HIGHEST_PROTOCOL)
+        with open(self.__get_full_note_path(note.title), "w") as output:
+            pickler.dump(note, output, pickler.HIGHEST_PROTOCOL)
 
     def __get_full_note_path(self, title=""):
         """ We use bencoding to ensure a filesystem safe hash to use as a

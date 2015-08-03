@@ -25,8 +25,8 @@ class NoteManagerTest(ParametrizedTestCase):
         results = self.noteMan.search()
         self.assertEqual(
             results,
-            {},
-            "Param: {}. Received result: {}".format(self.param, results)
+            [],
+            "Param: {}. Received result: []".format(self.param, results)
         )
 
     def testAddEmptyTitleAndNoteRaisesEmptyNoteException(self):
@@ -90,16 +90,22 @@ class NoteManagerTest(ParametrizedTestCase):
         )
         results = self.noteMan.search(note_title)
         self.assertTrue(
-            note_title in results,
+            self.__note_title_is_in_results(note_title, results),
             "Param: {}. Expected Title not in result set"
             .format(self.param)
         )
         self.assertEqual(
-            results[note_title],
+            self.__get_note_body_by_title(note_title, results),
             note_body,
             "Param: {}. Note Body does not match Expected result"
             .format(self.param)
         )
+
+    def __note_title_is_in_results(self, note_title, results):
+        return note_title in [n.title for n in results],
+
+    def __get_note_body_by_title(self, note_title, results):
+        return filter(lambda x: x.title == note_title, results)[:1]
 
     def testRetrieveNoteWithPartialTitle(self):
         note_title = "Select everything from table"
@@ -116,12 +122,12 @@ class NoteManagerTest(ParametrizedTestCase):
         )
         results = self.noteMan.search("Select")
         self.assertTrue(
-            note_title in results,
+            self.__note_title_is_in_results(note_title, results),
             "Param: {}. Expected Title not in result set"
             .format(self.param)
         )
         self.assertEqual(
-            results[note_title],
+            self.__get_note_body_by_title(note_title, results),
             note_body,
             "Param: {}. Note Body does not match Expected result"
             .format(self.param)
@@ -145,15 +151,15 @@ class NoteManagerTest(ParametrizedTestCase):
         )
         results = self.noteMan.search("Select")
         self.assertEqual(len(notes), len(results))
-        for k in notes:
+        for note_title in notes:
             self.assertTrue(
-                k in results,
+                self.__note_title_is_in_results(note_title, results),
                 "Param: {}. Expected Title ({}) not in result set"
                 .format(self.param, k)
             )
             self.assertEqual(
-                results[k],
-                notes[k],
+                notes[note_title],
+                self.__get_note_body_by_title(note_title, results),
                 "Param: {}. Note Body does not match expected result"
                 .format(self.param)
             )
@@ -180,15 +186,15 @@ class NoteManagerTest(ParametrizedTestCase):
         results = self.noteMan.search("Select")
         self.assertEqual(len(notes) - 1, len(results))
         self.assertFalse(non_match_title in results)
-        for k in results:
+        for note in results:
             self.assertTrue(
-                k in notes,
+                self.__note_title_is_in_results(note, results),
                 "Param: {}. Expected Title ({}) not in result set"
-                .format(self.param, k)
+                .format(self.param, note)
             )
             self.assertEqual(
-                results[k],
-                notes[k],
+                self.__get_note_body_by_title(note, results),
+                notes[note.title],
                 "Param: {}. Note Body does not match expected result"
                 .format(self.param)
             )

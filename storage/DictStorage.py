@@ -5,28 +5,19 @@ class DictStorage(Storage):
     notes = None
 
     def __init__(self):
-        self.notes = {}
+        self.notes = []
 
     def search(self, search_param=""):
-        if search_param in self.notes:
-            return {search_param: self.notes[search_param]}
-        else:
-            return {
-                    s : self.notes[s]
-                    for s in self._get_list_of_keys_containing_search_string(search_param)
-            }
+        return filter(lambda x: search_param in x.title, self.notes)
 
-    def _get_list_of_keys_containing_search_string(self, search_str):
-        return [s for s in self.notes.keys() if search_str in s]
-
-    def add_note(self, title="", body=""):
-        self.notes[title] = body
+    def add_note(self, note):
+        self.notes.append(note)
 
     def has_note(self, title=""):
-        return title in self.notes
+        return len(filter(lambda x: x.title == title, self.notes)) > 0
 
     def _purge_all_notes(self):
-        self.notes = {}
+        self.notes = []
 
     class Factory:
         def create(self, *args, **kwargs):
