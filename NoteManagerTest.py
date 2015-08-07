@@ -105,7 +105,9 @@ class NoteManagerTest(ParametrizedTestCase):
         return note_title in [n.title for n in results],
 
     def __get_note_body_by_title(self, note_title, results):
-        return filter(lambda x: x.title == note_title, results)[:1]
+        note_bodies = filter(lambda x: x.title == note_title, results)
+        if len(note_bodies) > 0:
+            return note_bodies[0].body
 
     def testRetrieveNoteWithPartialTitle(self):
         note_title = "Select everything from table"
@@ -157,11 +159,12 @@ class NoteManagerTest(ParametrizedTestCase):
                 "Param: {}. Expected Title ({}) not in result set"
                 .format(self.param, k)
             )
+            note_body = self.__get_note_body_by_title(note_title, results)
             self.assertEqual(
+                note_body,
                 notes[note_title],
-                self.__get_note_body_by_title(note_title, results),
-                "Param: {}. Note Body does not match expected result"
-                .format(self.param)
+                "Param: {}. Note Body ({}) does not match expected result: {}"
+                .format(self.param, notes[note_title], note_title, note_body, results)
             )
 
     def testRetrieveSomeNotesWithPartialSearchParameter(self):
@@ -193,10 +196,10 @@ class NoteManagerTest(ParametrizedTestCase):
                 .format(self.param, note)
             )
             self.assertEqual(
-                self.__get_note_body_by_title(note, results),
                 notes[note.title],
-                "Param: {}. Note Body does not match expected result"
-                .format(self.param)
+                note.body,
+                "Param: {}. Note Body ({}) does not match expected result: {}"
+                .format(self.param, note.body, notes[note.title])
             )
 
     def testAddDuplicateNoteTitle(self):

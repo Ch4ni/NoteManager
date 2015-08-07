@@ -5,7 +5,11 @@ from Note import Note
 
 
 class NoteManager:
-    def __init__(self, storage_type="", *args, **kwargs):
+    def __init__(self, storage_type="DictStorage", *args, **kwargs):
+        if args is None:
+            args = []
+        if kwargs is None:
+            kwargs = {}
         self.storage = StorageFactory.create_storage(storage_type, *args, **kwargs)
 
     def search(self, search_param=""):
