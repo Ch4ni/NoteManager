@@ -30,8 +30,9 @@ class NoteManagerTest(ParametrizedTestCase):
         )
 
     def testAddEmptyTitleAndNoteRaisesEmptyNoteException(self):
+        note_id = None
         try:
-            self.noteMan.add_note()
+            note_id = self.noteMan.add_note("", "")
         except EmptyNoteException:
             self.exceptionIsThrownByMethod = True
         self.assertTrue(
@@ -39,10 +40,12 @@ class NoteManagerTest(ParametrizedTestCase):
             "Param: {}. Expected EmptyNoteException was not thrown"
             .format(self.param)
         )
+        self.assertIsNone(note_id, "note_id is not None: {}".format(note_id))
 
     def testAddEmptyTitleRaisesEmptyTitleException(self):
+        note_id = None
         try:
-            self.noteMan.add_note(body="SELECT * FROM SOMETABLE")
+            note_id = self.noteMan.add_note(body="SELECT * FROM SOMETABLE")
         except EmptyTitleException:
             self.exceptionIsThrownByMethod = True
         self.assertTrue(
@@ -50,10 +53,12 @@ class NoteManagerTest(ParametrizedTestCase):
             "Param: {}. Expected EmptyTitleException was not thrown"
             .format(self.param)
         )
+        self.assertIsNone(note_id, "note_id is not None: {}".format(note_id))
 
     def testAddEmptyBodyRaisesEmptyBodyException(self):
+        note_id = None
         try:
-            self.noteMan.add_note(title="Blank Note")
+            note_id = self.noteMan.add_note(title="Blank Note")
         except EmptyBodyException:
             self.exceptionIsThrownByMethod = True
         self.assertTrue(
@@ -61,10 +66,12 @@ class NoteManagerTest(ParametrizedTestCase):
             "Param: {}. Expected EmptyBodyException was not thrown"
             .format(self.param)
         )
+        self.assertIsNone(note_id, "note_id is not None: {}".format(note_id))
 
     def testAddValidNote(self):
+        note_id = None
         try:
-            self.noteMan.add_note("Select everything from table",
+            note_id = self.noteMan.add_note("Select everything from table",
                                   "SELECT * FROM X")
         except Exception as e:
             self.exceptionIsThrownByMethod = True
@@ -74,12 +81,14 @@ class NoteManagerTest(ParametrizedTestCase):
             "Param: {}. Received unexpected Exception: ({!r})"
             .format(self.param, self.receivedException)
         )
+        self.assertIsNotNone(note_id, "note_id is None")
 
     def testRetrieveNoteWithExactTitle(self):
         note_title = "Select everything from table"
         note_body = "SELECT * FROM X"
+        note_id = None
         try:
-            self.noteMan.add_note(note_title, note_body)
+            note_id = self.noteMan.add_note(note_title, note_body)
         except Exception as e:
             self.exceptionIsThrownByMethod = True
             self.receivedException = e
@@ -100,20 +109,31 @@ class NoteManagerTest(ParametrizedTestCase):
             "Param: {}. Note Body does not match Expected result"
             .format(self.param)
         )
+        retreived_note = self.__get_note_by_title(note_title, results)
+        self.assertEqual(
+            retreived_note.id,
+            note_id,
+            "Param: {}. note_id ({}) does not match result: ({})"
+            .format(self.param, note_id, retreived_note.id)
+        )
 
     def __note_title_is_in_results(self, note_title, results):
         return note_title in [n.title for n in results],
 
     def __get_note_body_by_title(self, note_title, results):
-        note_bodies = filter(lambda x: x.title == note_title, results)
-        if len(note_bodies) > 0:
-            return note_bodies[0].body
+        return self.__get_note_by_title(note_title, results).body
+
+    def __get_note_by_title(self, note_title, results):
+        notes = filter(lambda x: x.title == note_title, results)
+        if len(notes) > 0:
+            return notes[0]
 
     def testRetrieveNoteWithPartialTitle(self):
         note_title = "Select everything from table"
         note_body = "SELECT * FROM X"
+        note_id = None
         try:
-            self.noteMan.add_note(note_title, note_body)
+            note_id = self.noteMan.add_note(note_title, note_body)
         except Exception as e:
             self.exceptionIsThrownByMethod = True
             self.receivedException = e
@@ -128,11 +148,18 @@ class NoteManagerTest(ParametrizedTestCase):
             "Param: {}. Expected Title not in result set"
             .format(self.param)
         )
+        result_note = self.__get_note_by_title(note_title, results)
         self.assertEqual(
-            self.__get_note_body_by_title(note_title, results),
+            result_note.body,
             note_body,
             "Param: {}. Note Body does not match Expected result"
             .format(self.param)
+        )
+        self.assertEqual(
+            result_note.id,
+            note_id,
+            "Param: {}. note_id ({}) does not match result: ({})"
+            .format(self.param, note_id, result_note.id)
         )
 
     def testRetrieveAllNotesWithPartialSearchParameter(self):
@@ -140,9 +167,10 @@ class NoteManagerTest(ParametrizedTestCase):
             "Select everything from table": "SELECT * FROM X",
             "Select one thing from table": "SELECT TOP 1 * FROM X"
         }
+        note_ids = []
         try:
             for k in notes:
-                self.noteMan.add_note(k, notes[k])
+                note_ids.append(self.noteMan.add_note(k, notes[k]))
         except Exception as e:
             self.exceptionIsThrownByMethod = True
             self.receivedException = e
@@ -166,6 +194,13 @@ class NoteManagerTest(ParametrizedTestCase):
                 "Param: {}. Note Body ({}) does not match expected result: {}"
                 .format(self.param, notes[note_title], note_title, note_body, results)
             )
+        self.assertEqual(len(results), len(note_ids))
+        for note in results:
+            self.assertTrue(
+                note.id in note_ids,
+                "Param: {}. note_id ({}) not present in note_ids: ({})"
+                .format(self.param, note.id, note_ids)
+            )
 
     def testRetrieveSomeNotesWithPartialSearchParameter(self):
         non_match_title = "Nope, nope, nope"
@@ -175,9 +210,10 @@ class NoteManagerTest(ParametrizedTestCase):
             non_match_title:
                 "exec sp_MSforeachtable @command1 = \"DROP TABLE ?\""
         }
+        note_ids = []
         try:
             for k in notes:
-                self.noteMan.add_note(k, notes[k])
+                note_ids.append(self.noteMan.add_note(k, notes[k]))
         except Exception as e:
             self.exceptionIsThrownByMethod = True
             self.receivedException = e
@@ -201,6 +237,7 @@ class NoteManagerTest(ParametrizedTestCase):
                 "Param: {}. Note Body ({}) does not match expected result: {}"
                 .format(self.param, note.body, notes[note.title])
             )
+            self.assertTrue(note.id in note_ids)
 
     def testAddDuplicateNoteTitle(self):
         note_title = "Select everything from table"

@@ -3,15 +3,20 @@ from Storage import Storage
 
 class DictStorage(Storage):
     notes = None
+    last_id = None
 
     def __init__(self):
         self.notes = []
+        self.last_id = 0
 
     def search(self, search_param=""):
         return filter(lambda x: search_param in x.title, self.notes)
 
     def add_note(self, note):
+        self.last_id += 1
+        note.id = self.last_id
         self.notes.append(note)
+        return self.last_id
 
     def has_note(self, title=""):
         return len(filter(lambda x: x.title == title, self.notes)) > 0

@@ -16,9 +16,9 @@ class NoteManager:
         return self.storage.search(search_param)
 
     def add_note(self, title="", body=""):
-        note = Note(id, title, body)
+        note = Note(0, title, body)
         self.validate_note(note)
-        self.storage.add_note(note)
+        return self.storage.add_note(note)
 
     def validate_note(self, note=Note(0,"","")):
         if self.is_empty_note(note):
