@@ -81,7 +81,11 @@ class NoteManagerTest(ParametrizedTestCase):
             "Param: {}. Received unexpected Exception: ({!r})"
             .format(self.param, self.receivedException)
         )
-        self.assertIsNotNone(note_id, "note_id is None")
+        self.assertIsNotNone(
+                note_id,
+                "Param: {}. note_id is None"
+                .format(self.param)
+        )
 
     def testRetrieveNoteWithExactTitle(self):
         note_title = "Select everything from table"
