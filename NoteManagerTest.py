@@ -172,5 +172,19 @@ class NoteManagerTest(ParametrizedTestCase):
         self.tryAddNoteWithExcept(note_title, "SELECT ... FROM X", DuplicateEntryException)
         self.assertExceptionRaised(DuplicateEntryException)
 
+    def testRemoveNoteById(self):
+        note = Note(id=0, title="Select everything from table", body="SELECT * FROM X")
+        note.id = self.tryAddNoteWithExcept(title=note.title, body=note.body)
+        self.assertExceptionNotRaised()
+        self.noteMan.delete_note(id = note.id)
+        results = self.noteMan.search(note.title.split(" ")[0])
+        self.assertEqual(
+                0,
+                len(results),
+                "Param: {}. Result list should be empty, but is not."
+                .format(self.param)
+        )
+
+
 if __name__ == '__main__':
     unittest.main()

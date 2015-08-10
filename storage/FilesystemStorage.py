@@ -3,12 +3,12 @@ import shutil
 import cPickle
 
 from base64 import urlsafe_b64encode,urlsafe_b64decode
-from Storage import Storage
+from Storage import NoteStorage
 
 pickler = cPickle
 
 
-class FilesystemStorage(Storage):
+class FilesystemStorage(NoteStorage):
     def __init__(self, *args, **kwargs):
         self.base_path = kwargs['base_path']
         self.__metadata_path = os.path.join(self.base_path, ".metadata")
@@ -69,6 +69,19 @@ class FilesystemStorage(Storage):
         return os.path.exists(
                 os.path.join(self.base_path, urlsafe_b64encode(title))
         )
+
+    def delete(self, id=None):
+        if id is None: return
+        files = os.listdir(self.base_path)
+        files.remove(os.path.basename(self.__metadata_path))
+        for f in files:
+            note_path = os.path.join(self.base_path, f)
+            with open(note_path, "r") as note_file:
+                note = pickler.load(note_file)
+                if note.id == id:
+                    note_file.close()
+                    os.remove(note_path)
+                    return
 
     def _purge_all_notes(self):
         self.__check_basepath_exists()

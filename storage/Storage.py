@@ -1,4 +1,4 @@
-class Storage:
+class NoteStorage:
     def add_note(self, title="", body=""):
         pass
     
@@ -8,5 +8,11 @@ class Storage:
     def has_note(self, title=""):
         pass
 
+    def delete(self, id=None):
+        pass
+
     def _purge_all_notes(self):
         pass
+
+class NoteDoesNotExistException(Exception):
+    pass

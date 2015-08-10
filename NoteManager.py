@@ -30,6 +30,9 @@ class NoteManager:
         if self.storage.has_note(note.title):
             raise DuplicateEntryException
 
+    def delete_note(self, id):
+        self.storage.delete(id)
+
     @staticmethod
     def is_empty_note(note):
         return note.body == "" and note.title == ""

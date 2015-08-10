@@ -1,7 +1,7 @@
-from Storage import Storage
+from Storage import NoteStorage
 
 
-class DictStorage(Storage):
+class DictStorage(NoteStorage):
     notes = None
     last_id = None
 
@@ -20,6 +20,9 @@ class DictStorage(Storage):
 
     def has_note(self, title=""):
         return len(filter(lambda x: x.title == title, self.notes)) > 0
+
+    def delete(self, id=None):
+        self.notes.remove(*filter(lambda x: x.id == id, self.notes))
 
     def _purge_all_notes(self):
         self.notes = []
