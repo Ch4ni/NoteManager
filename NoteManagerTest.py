@@ -9,7 +9,6 @@ from test import ParametrizedTestCase
 class NoteManagerTest(ParametrizedTestCase):
     def setUp(self):
         self.noteMan = NoteManager(self.param[0], *self.param[1], **self.param[2])
-        self.exceptionIsThrownByMethod = False
         self.receivedException = None
 
     def tearDown(self):
@@ -38,12 +37,11 @@ class NoteManagerTest(ParametrizedTestCase):
         try:
             return self.noteMan.add_note(title, body)
         except exception as e:
-            self.exceptionIsThrownByMethod = True
             self.receivedException = e
 
     def assertExceptionRaised(self, exception_type):
-        self.assertTrue(
-            self.exceptionIsThrownByMethod,
+        self.assertIsNotNone(
+            self.receivedException,
             "Param: {}. Expected {!r} was not thrown"
                 .format(self.param, exception_type)
         )
@@ -68,8 +66,8 @@ class NoteManagerTest(ParametrizedTestCase):
         self.assertNoteIdIsNotNone(note_id)
 
     def assertExceptionNotRaised(self):
-        self.assertFalse(
-            self.exceptionIsThrownByMethod,
+        self.assertIsNone(
+            self.receivedException,
             "Param: {}. Received unexpected Exception: ({!r})"
                 .format(self.param, self.receivedException)
         )
