@@ -30,102 +30,91 @@ class NoteManagerTest(ParametrizedTestCase):
         )
 
     def testAddEmptyTitleAndNoteRaisesEmptyNoteException(self):
-        note_id = None
+        note_id = self.tryAddNoteWithExcept("", "", EmptyNoteException)
+        self.assertExceptionRaised(EmptyNoteException)
+        self.assertNoteIdIsNone(note_id)
+
+    def tryAddNoteWithExcept(self, title="", body="", exception=Exception):
         try:
-            note_id = self.noteMan.add_note("", "")
-        except EmptyNoteException:
+            return self.noteMan.add_note(title, body)
+        except exception as e:
             self.exceptionIsThrownByMethod = True
+            self.receivedException = e
+
+    def assertExceptionRaised(self, exception_type):
         self.assertTrue(
             self.exceptionIsThrownByMethod,
-            "Param: {}. Expected EmptyNoteException was not thrown"
-            .format(self.param)
+            "Param: {}. Expected {!r} was not thrown"
+                .format(self.param, exception_type)
         )
+
+    def assertNoteIdIsNone(self, note_id):
         self.assertIsNone(note_id, "note_id is not None: {}".format(note_id))
 
     def testAddEmptyTitleRaisesEmptyTitleException(self):
-        note_id = None
-        try:
-            note_id = self.noteMan.add_note(body="SELECT * FROM SOMETABLE")
-        except EmptyTitleException:
-            self.exceptionIsThrownByMethod = True
-        self.assertTrue(
-            self.exceptionIsThrownByMethod,
-            "Param: {}. Expected EmptyTitleException was not thrown"
-            .format(self.param)
-        )
-        self.assertIsNone(note_id, "note_id is not None: {}".format(note_id))
+        note_id = self.tryAddNoteWithExcept(body="SELECT * FROM SOMETABLE", exception=EmptyTitleException)
+        self.assertExceptionRaised(EmptyTitleException)
+        self.assertNoteIdIsNone(note_id)
 
     def testAddEmptyBodyRaisesEmptyBodyException(self):
-        note_id = None
-        try:
-            note_id = self.noteMan.add_note(title="Blank Note")
-        except EmptyBodyException:
-            self.exceptionIsThrownByMethod = True
-        self.assertTrue(
-            self.exceptionIsThrownByMethod,
-            "Param: {}. Expected EmptyBodyException was not thrown"
-            .format(self.param)
-        )
-        self.assertIsNone(note_id, "note_id is not None: {}".format(note_id))
+        note_id = self.tryAddNoteWithExcept("Blank Note", "", EmptyBodyException)
+        self.assertExceptionRaised(EmptyBodyException)
+        self.assertNoteIdIsNone(note_id)
 
     def testAddValidNote(self):
-        note_id = None
-        try:
-            note_id = self.noteMan.add_note("Select everything from table",
-                                  "SELECT * FROM X")
-        except Exception as e:
-            self.exceptionIsThrownByMethod = True
-            self.receivedException = e
+        note_id = self.tryAddNoteWithExcept(title="Select everything from table",
+                                  body="SELECT * FROM X")
+        self.assertExceptionNotRaised()
+        self.assertNoteIdIsNotNone(note_id)
+
+    def assertExceptionNotRaised(self):
         self.assertFalse(
             self.exceptionIsThrownByMethod,
             "Param: {}. Received unexpected Exception: ({!r})"
-            .format(self.param, self.receivedException)
-        )
-        self.assertIsNotNone(
-                note_id,
-                "Param: {}. note_id is None"
-                .format(self.param)
+                .format(self.param, self.receivedException)
         )
 
+    def assertNoteIdIsNotNone(self, note_id):
+        self.assertIsNotNone(note_id, "note_id is None")
+
     def testRetrieveNoteWithExactTitle(self):
-        note_title = "Select everything from table"
-        note_body = "SELECT * FROM X"
-        note_id = None
-        try:
-            note_id = self.noteMan.add_note(note_title, note_body)
-        except Exception as e:
-            self.exceptionIsThrownByMethod = True
-            self.receivedException = e
-        self.assertFalse(
-            self.exceptionIsThrownByMethod,
-            "Param: {}. Received unexpected Exception ({!r}) during addNote"
-            .format(self.param, self.receivedException)
-        )
-        results = self.noteMan.search(note_title)
+        note = Note(title="Select everything from table", body="SELECT * FROM X")
+        note.id = self.tryAddNoteWithExcept(note.title, note.body)
+        self.assertExceptionNotRaised()
+        results = self.noteMan.search(note.title)
+        self.assertNoteInList(note, results)
+        self.assertNoteIdsEqual(note, self.__get_note_by_title(note.title, results))
+
+    def assertNoteInList(self, note, results):
         self.assertTrue(
-            self.__note_title_is_in_results(note_title, results),
-            "Param: {}. Expected Title not in result set"
-            .format(self.param)
+            self.__note_title_is_in_results(note.title, results),
+            "Param: {}. Expected Title ({}) not in result set"
+                .format(self.param, note.title)
+        )
+        result_note = self.__get_note_by_title(note.title, results)
+        self.assertEqual(
+            note.body,
+            result_note.body,
+            "Param: {}. Note Body does not match Expected result\nExpected: {}\nActual: {}"
+                .format(self.param, note.body, result_note.body)
         )
         self.assertEqual(
-            self.__get_note_body_by_title(note_title, results),
-            note_body,
-            "Param: {}. Note Body does not match Expected result"
-            .format(self.param)
+            note.id,
+            result_note.id,
+            "Param: {}. Note ID does not match expected result: {}"
+            .format(self.param, note.id)
         )
-        retreived_note = self.__get_note_by_title(note_title, results)
+
+    def assertNoteIdsEqual(self, note, retreived_note):
         self.assertEqual(
             retreived_note.id,
-            note_id,
+            note.id,
             "Param: {}. note_id ({}) does not match result: ({})"
-            .format(self.param, note_id, retreived_note.id)
+                .format(self.param, note.id, retreived_note.id)
         )
 
     def __note_title_is_in_results(self, note_title, results):
         return note_title in [n.title for n in results],
-
-    def __get_note_body_by_title(self, note_title, results):
-        return self.__get_note_by_title(note_title, results).body
 
     def __get_note_by_title(self, note_title, results):
         notes = filter(lambda x: x.title == note_title, results)
@@ -133,131 +122,57 @@ class NoteManagerTest(ParametrizedTestCase):
             return notes[0]
 
     def testRetrieveNoteWithPartialTitle(self):
-        note_title = "Select everything from table"
-        note_body = "SELECT * FROM X"
-        note_id = None
-        try:
-            note_id = self.noteMan.add_note(note_title, note_body)
-        except Exception as e:
-            self.exceptionIsThrownByMethod = True
-            self.receivedException = e
-        self.assertFalse(
-            self.exceptionIsThrownByMethod,
-            "Param: {}. Received unexpected Exception ({!r}) during addNote"
-            .format(self.param, self.receivedException)
-        )
+        note = Note(id=None, title="Select everything from table", body="SELECT * FROM X")
+        note.id = self.tryAddNoteWithExcept(title=note.title, body=note.body)
+        self.assertExceptionNotRaised()
         results = self.noteMan.search("Select")
-        self.assertTrue(
-            self.__note_title_is_in_results(note_title, results),
-            "Param: {}. Expected Title not in result set"
-            .format(self.param)
-        )
-        result_note = self.__get_note_by_title(note_title, results)
-        self.assertEqual(
-            result_note.body,
-            note_body,
-            "Param: {}. Note Body does not match Expected result"
-            .format(self.param)
-        )
-        self.assertEqual(
-            result_note.id,
-            note_id,
-            "Param: {}. note_id ({}) does not match result: ({})"
-            .format(self.param, note_id, result_note.id)
-        )
+        self.assertNoteInList(note, results)
+        self.assertNoteIdsEqual(note, self.__get_note_by_title(note.title, results))
 
     def testRetrieveAllNotesWithPartialSearchParameter(self):
-        notes = {
-            "Select everything from table": "SELECT * FROM X",
-            "Select one thing from table": "SELECT TOP 1 * FROM X"
-        }
-        note_ids = []
-        try:
-            for k in notes:
-                note_ids.append(self.noteMan.add_note(k, notes[k]))
-        except Exception as e:
-            self.exceptionIsThrownByMethod = True
-            self.receivedException = e
-        self.assertFalse(
-            self.exceptionIsThrownByMethod,
-            "Param: {}. Received unexpected Exception ({!r}) during addNote"
-            .format(self.param, self.receivedException)
-        )
+        notes = [
+            Note(id=0, title="Select everything from table", body="SELECT * FROM X"),
+            Note(id=0, title="Select one thing from table",  body="SELECT TOP 1 * FROM X")
+        ]
+        for k in notes:
+            k.id = self.tryAddNoteWithExcept(title=k.title, body=k.body)
+        self.assertExceptionNotRaised()
         results = self.noteMan.search("Select")
         self.assertEqual(len(notes), len(results))
-        for note_title in notes:
-            self.assertTrue(
-                self.__note_title_is_in_results(note_title, results),
-                "Param: {}. Expected Title ({}) not in result set"
-                .format(self.param, k)
-            )
-            note_body = self.__get_note_body_by_title(note_title, results)
-            self.assertEqual(
-                note_body,
-                notes[note_title],
-                "Param: {}. Note Body ({}) does not match expected result: {}"
-                .format(self.param, notes[note_title], note_title, note_body, results)
-            )
-        self.assertEqual(len(results), len(note_ids))
-        for note in results:
-            self.assertTrue(
-                note.id in note_ids,
-                "Param: {}. note_id ({}) not present in note_ids: ({})"
-                .format(self.param, note.id, note_ids)
-            )
+        for note in notes:
+            self.assertNoteInList(note, results)
+        self.assertEqual(len(results), len(notes))
 
     def testRetrieveSomeNotesWithPartialSearchParameter(self):
-        non_match_title = "Nope, nope, nope"
-        notes = {
-            "Select everything from table": "SELECT * FROM X",
-            "Select one thing from table": "SELECT TOP 1 * FROM X",
-            non_match_title:
-                "exec sp_MSforeachtable @command1 = \"DROP TABLE ?\""
-        }
-        note_ids = []
-        try:
-            for k in notes:
-                note_ids.append(self.noteMan.add_note(k, notes[k]))
-        except Exception as e:
-            self.exceptionIsThrownByMethod = True
-            self.receivedException = e
-        self.assertFalse(
-            self.exceptionIsThrownByMethod,
-            "Param: {}. Received unexpected Exception ({!r}) during addNote"
-            .format(self.param, self.receivedException)
-        )
+        non_match_note = Note(title="Nope, nope, nope", body="exec sp_MSforeachtable @command1 = \"DROP TABLE ?\"")
+        notes = [
+            non_match_note,
+            Note(title="Select everything from table", body="SELECT * FROM X"),
+            Note(title="Select one thing from table", body="SELECT TOP 1 * FROM X")
+        ]
+        for k in notes:
+            k.id = self.tryAddNoteWithExcept(title=k.title, body=k.body)
+        self.assertExceptionNotRaised()
         results = self.noteMan.search("Select")
         self.assertEqual(len(notes) - 1, len(results))
-        self.assertFalse(non_match_title in results)
+        self.assertNoteNotInList(non_match_note, results)
         for note in results:
-            self.assertTrue(
-                self.__note_title_is_in_results(note, results),
-                "Param: {}. Expected Title ({}) not in result set"
-                .format(self.param, note)
+            self.assertNoteInList(note, notes)
+
+    def assertNoteNotInList(self, note, list):
+        for n in list:
+            self.assertNotEqual(
+                n,
+                note,
+                "Param: {}. Note should not be in result list, but is: \nID: {}\nTitle: {}\nBody: {}"
+                .format(self.param, note.id, note.title, note.body)
             )
-            self.assertEqual(
-                notes[note.title],
-                note.body,
-                "Param: {}. Note Body ({}) does not match expected result: {}"
-                .format(self.param, note.body, notes[note.title])
-            )
-            self.assertTrue(note.id in note_ids)
 
     def testAddDuplicateNoteTitle(self):
-        note_title = "Select everything from table"
-        note1_body = "SELECT * FROM X"
-        note2_body = "SELECT col1,col2,...,colN FROM X"
-        try:
-            self.noteMan.add_note(note_title, note1_body)
-            self.noteMan.add_note(note_title, note2_body)
-        except DuplicateEntryException:
-            self.exceptionIsThrownByMethod = True
-        self.assertTrue(
-            self.exceptionIsThrownByMethod,
-            "Param: {}. Expected DuplicateEntryException was not thrown"
-            .format(self.param)
-        )
-
+        note_title = "select everything"
+        self.tryAddNoteWithExcept(note_title, "SELECT * FROM X", DuplicateEntryException)
+        self.tryAddNoteWithExcept(note_title, "SELECT ... FROM X", DuplicateEntryException)
+        self.assertExceptionRaised(DuplicateEntryException)
 
 if __name__ == '__main__':
     unittest.main()
