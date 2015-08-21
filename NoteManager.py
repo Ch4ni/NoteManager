@@ -15,12 +15,11 @@ class NoteManager:
     def search(self, search_param=""):
         return self.storage.search(search_param)
 
-    def add_note(self, title="", body=""):
-        note = Note(0, title, body)
+    def add_note(self, note=None):
         self.validate_note(note)
         return self.storage.add_note(note)
 
-    def validate_note(self, note=Note(0,"","")):
+    def validate_note(self, note=None):
         if self.is_empty_note(note):
             raise EmptyNoteException
         if note.title == "":

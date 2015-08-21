@@ -29,13 +29,13 @@ class NoteManagerTest(ParametrizedTestCase):
         )
 
     def testAddEmptyTitleAndNoteRaisesEmptyNoteException(self):
-        note_id = self.tryAddNoteWithExcept("", "", EmptyNoteException)
+        note_id = self.tryAddNoteWithExcept(Note("", ""), EmptyNoteException)
         self.assertExceptionRaised(EmptyNoteException)
         self.assertNoteIdIsNone(note_id)
 
-    def tryAddNoteWithExcept(self, title="", body="", exception=Exception):
+    def tryAddNoteWithExcept(self, note=None, exception=Exception):
         try:
-            return self.noteMan.add_note(title, body)
+            return self.noteMan.add_note(note)
         except exception as e:
             self.receivedException = e
 
@@ -50,18 +50,18 @@ class NoteManagerTest(ParametrizedTestCase):
         self.assertIsNone(note_id, "note_id is not None: {}".format(note_id))
 
     def testAddEmptyTitleRaisesEmptyTitleException(self):
-        note_id = self.tryAddNoteWithExcept(body="SELECT * FROM SOMETABLE", exception=EmptyTitleException)
+        note_id = self.tryAddNoteWithExcept(Note(body="SELECT * FROM SOMETABLE"), exception=EmptyTitleException)
         self.assertExceptionRaised(EmptyTitleException)
         self.assertNoteIdIsNone(note_id)
 
     def testAddEmptyBodyRaisesEmptyBodyException(self):
-        note_id = self.tryAddNoteWithExcept("Blank Note", "", EmptyBodyException)
+        note_id = self.tryAddNoteWithExcept(Note("Blank Note", ""), EmptyBodyException)
         self.assertExceptionRaised(EmptyBodyException)
         self.assertNoteIdIsNone(note_id)
 
     def testAddValidNote(self):
-        note_id = self.tryAddNoteWithExcept(title="Select everything from table",
-                                  body="SELECT * FROM X")
+        note_id = self.tryAddNoteWithExcept(Note("Select everything from table",
+                                  "SELECT * FROM X"))
         self.assertExceptionNotRaised()
         self.assertNoteIdIsNotNone(note_id)
 
@@ -77,7 +77,7 @@ class NoteManagerTest(ParametrizedTestCase):
 
     def testRetrieveNoteWithExactTitle(self):
         note = Note(title="Select everything from table", body="SELECT * FROM X")
-        note.id = self.tryAddNoteWithExcept(note.title, note.body)
+        note.id = self.tryAddNoteWithExcept(note)
         self.assertExceptionNotRaised()
         results = self.noteMan.search(note.title)
         self.assertNoteInList(note, results)
@@ -120,8 +120,8 @@ class NoteManagerTest(ParametrizedTestCase):
             return notes[0]
 
     def testRetrieveNoteWithPartialTitle(self):
-        note = Note(id=None, title="Select everything from table", body="SELECT * FROM X")
-        note.id = self.tryAddNoteWithExcept(title=note.title, body=note.body)
+        note = Note(title="Select everything from table", body="SELECT * FROM X")
+        note.id = self.tryAddNoteWithExcept(note)
         self.assertExceptionNotRaised()
         results = self.noteMan.search("Select")
         self.assertNoteInList(note, results)
@@ -129,11 +129,11 @@ class NoteManagerTest(ParametrizedTestCase):
 
     def testRetrieveAllNotesWithPartialSearchParameter(self):
         notes = [
-            Note(id=0, title="Select everything from table", body="SELECT * FROM X"),
-            Note(id=0, title="Select one thing from table",  body="SELECT TOP 1 * FROM X")
+            Note(title="Select everything from table", body="SELECT * FROM X"),
+            Note(title="Select one thing from table",  body="SELECT TOP 1 * FROM X")
         ]
-        for k in notes:
-            k.id = self.tryAddNoteWithExcept(title=k.title, body=k.body)
+        for note in notes:
+            note.id = self.tryAddNoteWithExcept(note)
         self.assertExceptionNotRaised()
         results = self.noteMan.search("Select")
         self.assertEqual(len(notes), len(results))
@@ -142,14 +142,14 @@ class NoteManagerTest(ParametrizedTestCase):
         self.assertEqual(len(results), len(notes))
 
     def testRetrieveSomeNotesWithPartialSearchParameter(self):
-        non_match_note = Note(title="Nope, nope, nope", body="exec sp_MSforeachtable @command1 = \"DROP TABLE ?\"")
+        non_match_note = Note("Nope, nope, nope", "exec sp_MSforeachtable @command1 = \"DROP TABLE ?\"")
         notes = [
             non_match_note,
-            Note(title="Select everything from table", body="SELECT * FROM X"),
-            Note(title="Select one thing from table", body="SELECT TOP 1 * FROM X")
+            Note("Select everything from table", "SELECT * FROM X"),
+            Note("Select one thing from table", "SELECT TOP 1 * FROM X")
         ]
-        for k in notes:
-            k.id = self.tryAddNoteWithExcept(title=k.title, body=k.body)
+        for note in notes:
+            note.id = self.tryAddNoteWithExcept(note)
         self.assertExceptionNotRaised()
         results = self.noteMan.search("Select")
         self.assertEqual(len(notes) - 1, len(results))
@@ -168,13 +168,13 @@ class NoteManagerTest(ParametrizedTestCase):
 
     def testAddDuplicateNoteTitle(self):
         note_title = "select everything"
-        self.tryAddNoteWithExcept(note_title, "SELECT * FROM X", DuplicateEntryException)
-        self.tryAddNoteWithExcept(note_title, "SELECT ... FROM X", DuplicateEntryException)
+        self.tryAddNoteWithExcept(Note(note_title, "SELECT * FROM X"), DuplicateEntryException)
+        self.tryAddNoteWithExcept(Note(note_title, "SELECT ... FROM X"), DuplicateEntryException)
         self.assertExceptionRaised(DuplicateEntryException)
 
     def testRemoveNoteById(self):
-        note = Note(id=0, title="Select everything from table", body="SELECT * FROM X")
-        note.id = self.tryAddNoteWithExcept(title=note.title, body=note.body)
+        note = Note(title="Select everything from table", body="SELECT * FROM X")
+        note.id = self.tryAddNoteWithExcept(note)
         self.assertExceptionNotRaised()
         self.noteMan.delete_note(id = note.id)
         results = self.noteMan.search(note.title.split(" ")[0])
