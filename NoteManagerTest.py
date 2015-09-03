@@ -112,7 +112,7 @@ class NoteManagerTest(ParametrizedTestCase):
         )
 
     def __note_title_is_in_results(self, note_title, results):
-        return note_title in [n.title for n in results],
+        return note_title in [n.title for n in results]
 
     def __get_note_by_title(self, note_title, results):
         notes = filter(lambda x: x.title == note_title, results)
